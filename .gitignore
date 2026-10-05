@@ -1,0 +1,29 @@
+# Unreal Engine
+DerivedDataCache/
+Plugins/**/DerivedDataCache/*
+Intermediate/
+Plugins/**/Intermediate/*
+Saved/
+Plugins/**/Saved/*
+
+# Visual Studio / Rider / IDE
+.vs/
+.vscode/
+.idea/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+.vsconfig
+
+# Build outputs
+Build/
+*.target
+*.modules
+*.version
+
+# OS files
+.DS_Store
+Thumbs.db
