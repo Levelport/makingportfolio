@@ -5,6 +5,7 @@
 #include "ShooterUI.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "TesterWidget.h"
 
 void AShooterGameMode::BeginPlay()
 {
@@ -13,6 +14,9 @@ void AShooterGameMode::BeginPlay()
 	// create the UI
 	ShooterUI = CreateWidget<UShooterUI>(UGameplayStatics::GetPlayerController(GetWorld(), 0), ShooterUIClass);
 	ShooterUI->AddToViewport(0);
+
+	TesterWidget = CreateWidget<UTesterWidget>(UGameplayStatics::GetPlayerController(GetWorld(), 0), TesterWidgetClass);
+	TesterWidget->AddToViewport(1);
 }
 
 void AShooterGameMode::IncrementTeamScore(uint8 TeamByte)

@@ -7,6 +7,7 @@
 #include "ShooterGameMode.generated.h"
 
 class UShooterUI;
+class UTesterWidget;
 
 /**
  *  Simple GameMode for a first person shooter game
@@ -29,6 +30,13 @@ protected:
 
 	/** Map of scores by team ID */
 	TMap<uint8, int32> TeamScores;
+
+
+	TSubclassOf<UTesterWidget> TesterWidgetClass;
+
+	/** Pointer to the UI widget */
+	TObjectPtr<UTesterWidget> TesterWidget;
+
 
 protected:
 
