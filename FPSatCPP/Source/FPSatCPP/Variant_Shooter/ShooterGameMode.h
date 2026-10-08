@@ -32,9 +32,12 @@ protected:
 	TMap<uint8, int32> TeamScores;
 
 
+	/** Blueprint widget parented to TesterWidget */
+	UPROPERTY(EditAnywhere, Category="Shooter")
 	TSubclassOf<UTesterWidget> TesterWidgetClass;
 
-	/** Pointer to the UI widget */
+	/** Pointer to the tester UI widget */
+	UPROPERTY()
 	TObjectPtr<UTesterWidget> TesterWidget;
 
 

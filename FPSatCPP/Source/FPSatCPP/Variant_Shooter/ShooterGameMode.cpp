@@ -15,8 +15,14 @@ void AShooterGameMode::BeginPlay()
 	ShooterUI = CreateWidget<UShooterUI>(UGameplayStatics::GetPlayerController(GetWorld(), 0), ShooterUIClass);
 	ShooterUI->AddToViewport(0);
 
-	TesterWidget = CreateWidget<UTesterWidget>(UGameplayStatics::GetPlayerController(GetWorld(), 0), TesterWidgetClass);
-	TesterWidget->AddToViewport(1);
+	if (TesterWidgetClass)
+	{
+		TesterWidget = CreateWidget<UTesterWidget>(UGameplayStatics::GetPlayerController(GetWorld(), 0), TesterWidgetClass);
+		if (TesterWidget)
+		{
+			TesterWidget->AddToViewport(0);
+		}
+	}
 }
 
 void AShooterGameMode::IncrementTeamScore(uint8 TeamByte)
