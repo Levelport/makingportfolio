@@ -7,7 +7,6 @@
 #include "ShooterGameMode.generated.h"
 
 class UShooterUI;
-class UTesterWidget;
 
 /**
  *  Simple GameMode for a first person shooter game
@@ -30,18 +29,6 @@ protected:
 
 	/** Map of scores by team ID */
 	TMap<uint8, int32> TeamScores;
-
-
-	/** Blueprint widget parented to TesterWidget */
-	UPROPERTY(EditAnywhere, Category="Shooter")
-	TSubclassOf<UTesterWidget> TesterWidgetClass;
-
-	/** Pointer to the tester UI widget */
-	UPROPERTY()
-	TObjectPtr<UTesterWidget> TesterWidget;
-
-
-protected:
 
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
