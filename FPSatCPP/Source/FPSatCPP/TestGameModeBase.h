@@ -21,7 +21,7 @@ public:
 	ATestGameModeBase();
 
 protected:
-	/** Widget parented to TesterWidget */
+
 	UPROPERTY(EditAnywhere, Category="Test")
 	TSubclassOf<UTesterWidget> TesterWidgetClass;
 
@@ -29,4 +29,5 @@ protected:
 	TObjectPtr<UTesterWidget> TesterWidget;
 
 	virtual void BeginPlay() override;
+
 };

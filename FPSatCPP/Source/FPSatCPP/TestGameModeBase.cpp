@@ -18,6 +18,7 @@ void ATestGameModeBase::BeginPlay()
 	Super::BeginPlay();
 
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
 	if (TesterWidgetClass && PlayerController)
 	{
 		TesterWidget = CreateWidget<UTesterWidget>(PlayerController, TesterWidgetClass);
