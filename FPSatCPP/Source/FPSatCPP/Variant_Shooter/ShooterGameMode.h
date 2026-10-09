@@ -30,8 +30,6 @@ protected:
 	/** Map of scores by team ID */
 	TMap<uint8, int32> TeamScores;
 
-protected:
-
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
 

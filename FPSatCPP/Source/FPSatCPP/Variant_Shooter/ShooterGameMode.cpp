@@ -4,7 +4,6 @@
 #include "Variant_Shooter/ShooterGameMode.h"
 #include "ShooterUI.h"
 #include "Kismet/GameplayStatics.h"
-#include "Engine/World.h"
 
 void AShooterGameMode::BeginPlay()
 {
