@@ -23,6 +23,7 @@ ADoor::ADoor()
 	DoorBlocker->SetCollisionProfileName(FName("BlockAllDynamic"));
 }
 
+// Called when the game starts or when spawned
 void ADoor::BeginPlay()
 {
 	Super::BeginPlay();
@@ -39,6 +40,23 @@ void ADoor::BeginPlay()
 	}
 }
 
+void ADoor::OnSwitchCommand_Implementation(EFloorSwitchMode Mode, bool bPressed)
+{
+	if (!bPressed || Mode == EFloorSwitchMode::TurnOff)
+	{
+		SetOpen(false);
+		return;
+	}
+
+	if (Mode == EFloorSwitchMode::Toggle)
+	{
+		ToggleOpen();
+		return;
+	}
+
+	SetOpen(true);
+}
+
 void ADoor::SetOpen(bool bNewOpen)
 {
 	bHasReceivedCommand = true;
@@ -51,6 +69,7 @@ void ADoor::ToggleOpen()
 	SetOpen(!bOpen);
 }
 
+// Called every frame
 void ADoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

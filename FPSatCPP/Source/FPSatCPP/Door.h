@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "SwitchInterface.h"
 #include "Door.generated.h"
 
 class UBoxComponent;
@@ -12,12 +13,15 @@ class UBoxComponent;
  * 
  */
 UCLASS()
-class FPSATCPP_API ADoor : public AActor
+class FPSATCPP_API ADoor : public AActor, public ISwitchInterface
 {
 	GENERATED_BODY()
 
 public:
+	// Sets default values for this actor's properties
 	ADoor();
+
+	virtual void OnSwitchCommand_Implementation(EFloorSwitchMode Mode, bool bPressed) override;
 
 	UFUNCTION(BlueprintCallable, Category="Door")
 	void SetOpen(bool bNewOpen);
@@ -28,9 +32,11 @@ public:
 	UFUNCTION(BlueprintPure, Category="Door")
 	bool IsOpen() const { return bOpen; }
 
+	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 protected:
+	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, Category="Door")
@@ -57,5 +63,6 @@ protected:
 
 	bool bOpen = false;
 	bool bHasReceivedCommand = false;
+
 
 };

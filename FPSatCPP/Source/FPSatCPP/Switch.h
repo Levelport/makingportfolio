@@ -4,18 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "SwitchInterface.h"
 #include "Switch.generated.h"
 
 class UBoxComponent;
-
-UENUM(BlueprintType)
-enum class EFloorSwitchMode : uint8
-{
-	WhilePressed UMETA(DisplayName="押している間"),
-	Toggle UMETA(DisplayName="押すたびに切り替え"),
-	StayOn UMETA(DisplayName="オンにする"),
-	TurnOff UMETA(DisplayName="オフにする")
-};
 
 /**
  * 
@@ -37,7 +29,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Switch")
 	TObjectPtr<UBoxComponent> InteractBounds;
 
-	UPROPERTY(EditAnywhere, Category="Switch")
+	UPROPERTY(EditAnywhere, Category="Switch", meta=(MustImplement="/Script/FPSatCPP.SwitchInterface"))
 	TArray<TObjectPtr<AActor>> Targets;
 
 	//switch type

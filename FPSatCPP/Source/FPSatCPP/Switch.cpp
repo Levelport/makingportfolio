@@ -3,7 +3,6 @@
 
 #include "Switch.h"
 #include "Components/BoxComponent.h"
-#include "Door.h"
 #include "GameFramework/Pawn.h"
 
 // Sets default values
@@ -101,31 +100,9 @@ void ASwitch::SendCommand(bool bPressed)
 {
 	for (AActor* Target : Targets)
 	{
-		ADoor* Door = Cast<ADoor>(Target);
-		if (!Door)
+		if (IsValid(Target) && Target->GetClass()->ImplementsInterface(USwitchInterface::StaticClass()))
 		{
-			continue;
-		}
-
-		if (!bPressed)
-		{
-			Door->SetOpen(false);
-			continue;
-		}
-
-		switch (PressMode)
-		{
-		case EFloorSwitchMode::Toggle:
-			Door->ToggleOpen();
-			break;
-		case EFloorSwitchMode::TurnOff:
-			Door->SetOpen(false);
-			break;
-		case EFloorSwitchMode::WhilePressed:
-		case EFloorSwitchMode::StayOn:
-		default:
-			Door->SetOpen(true);
-			break;
+			ISwitchInterface::Execute_OnSwitchCommand(Target, PressMode, bPressed);
 		}
 	}
 
