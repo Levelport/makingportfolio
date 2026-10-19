@@ -102,7 +102,7 @@ void ASwitch::SendCommand(bool bPressed)
 	{
 		if (IsValid(Target) && Target->GetClass()->ImplementsInterface(USwitchInterface::StaticClass()))
 		{
-			ISwitchInterface::Execute_OnSwitchCommand(Target, PressMode, bPressed);
+			ISwitchInterface::Execute_OnSwitchCommand(Target, this, PressMode, bPressed);
 		}
 	}
 

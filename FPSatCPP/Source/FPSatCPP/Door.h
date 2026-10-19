@@ -21,7 +21,7 @@ public:
 	// Sets default values for this actor's properties
 	ADoor();
 
-	virtual void OnSwitchCommand_Implementation(EFloorSwitchMode Mode, bool bPressed) override;
+	virtual void OnSwitchCommand_Implementation(AActor* Source, EFloorSwitchMode Mode, bool bPressed) override;
 
 	UFUNCTION(BlueprintCallable, Category="Door")
 	void SetOpen(bool bNewOpen);
@@ -63,6 +63,7 @@ protected:
 
 	bool bOpen = false;
 	bool bHasReceivedCommand = false;
+	FSwitchDriveState DriveState;
 
 
 };

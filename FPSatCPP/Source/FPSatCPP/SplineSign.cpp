@@ -37,6 +37,7 @@ void ASplineSign::OnConstruction(const FTransform& Transform)
 void ASplineSign::BeginPlay()
 {
 	Super::BeginPlay();
+	DriveState.bLatched = bStartOn;
 	bLit = bStartOn;
 	RefreshPath(true);
 }
@@ -53,21 +54,9 @@ bool ASplineSign::ShouldTickIfViewportsOnly() const
 	return true;
 }
 
-void ASplineSign::OnSwitchCommand_Implementation(EFloorSwitchMode Mode, bool bPressed)
+void ASplineSign::OnSwitchCommand_Implementation(AActor* Source, EFloorSwitchMode Mode, bool bPressed)
 {
-	if (!bPressed || Mode == EFloorSwitchMode::TurnOff)
-	{
-		SetLit(false);
-		return;
-	}
-
-	if (Mode == EFloorSwitchMode::Toggle)
-	{
-		SetLit(!bLit);
-		return;
-	}
-
-	SetLit(true);
+	SetLit(DriveState.Apply(Source, Mode, bPressed));
 }
 
 void ASplineSign::SetLit(bool bNewLit)

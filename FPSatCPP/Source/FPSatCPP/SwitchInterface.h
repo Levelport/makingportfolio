@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 #include "UObject/Interface.h"
 #include "SwitchInterface.generated.h"
 
@@ -31,5 +32,55 @@ class FPSATCPP_API ISwitchInterface
 
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Switch")
-	void OnSwitchCommand(EFloorSwitchMode Mode, bool bPressed);
+	void OnSwitchCommand(AActor* Source, EFloorSwitchMode Mode, bool bPressed);
+};
+
+/** One object's on/off, combined from every switch that commands it. */
+struct FSwitchDriveState
+{
+	TSet<TWeakObjectPtr<AActor>> HeldSwitches;
+	bool bLatched = false;
+
+	bool IsOn()
+	{
+		for (auto It = HeldSwitches.CreateIterator(); It; ++It)
+		{
+			if (!It->IsValid())
+			{
+				It.RemoveCurrent();
+			}
+		}
+
+		return bLatched || HeldSwitches.Num() > 0;
+	}
+
+	bool Apply(AActor* Source, EFloorSwitchMode Mode, bool bPressed)
+	{
+		if (Mode == EFloorSwitchMode::WhilePressed)
+		{
+			if (bPressed && IsValid(Source))
+			{
+				HeldSwitches.Add(TWeakObjectPtr<AActor>(Source));
+			}
+			else
+			{
+				HeldSwitches.Remove(TWeakObjectPtr<AActor>(Source));
+			}
+		}
+		else if (bPressed && Mode == EFloorSwitchMode::Toggle)
+		{
+			bLatched = !bLatched;
+		}
+		else if (bPressed && Mode == EFloorSwitchMode::StayOn)
+		{
+			bLatched = true;
+		}
+		else if (Mode == EFloorSwitchMode::TurnOff)
+		{
+			bLatched = false;
+			HeldSwitches.Reset();
+		}
+
+		return IsOn();
+	}
 };

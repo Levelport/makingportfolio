@@ -27,7 +27,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual bool ShouldTickIfViewportsOnly() const override;
 
-	virtual void OnSwitchCommand_Implementation(EFloorSwitchMode Mode, bool bPressed) override;
+	virtual void OnSwitchCommand_Implementation(AActor* Source, EFloorSwitchMode Mode, bool bPressed) override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -81,4 +81,5 @@ protected:
 	TObjectPtr<UMaterialInstanceDynamic> LineMaterialInstance;
 
 	bool bLit = false;
+	FSwitchDriveState DriveState;
 };

@@ -32,6 +32,7 @@ void ADoor::BeginPlay()
 
 	if (!bHasReceivedCommand && bStartOpen)
 	{
+		DriveState.bLatched = true;
 		SetOpen(true);
 	}
 	else if (bOpen)
@@ -40,21 +41,9 @@ void ADoor::BeginPlay()
 	}
 }
 
-void ADoor::OnSwitchCommand_Implementation(EFloorSwitchMode Mode, bool bPressed)
+void ADoor::OnSwitchCommand_Implementation(AActor* Source, EFloorSwitchMode Mode, bool bPressed)
 {
-	if (!bPressed || Mode == EFloorSwitchMode::TurnOff)
-	{
-		SetOpen(false);
-		return;
-	}
-
-	if (Mode == EFloorSwitchMode::Toggle)
-	{
-		ToggleOpen();
-		return;
-	}
-
-	SetOpen(true);
+	SetOpen(DriveState.Apply(Source, Mode, bPressed));
 }
 
 void ADoor::SetOpen(bool bNewOpen)
@@ -66,7 +55,8 @@ void ADoor::SetOpen(bool bNewOpen)
 
 void ADoor::ToggleOpen()
 {
-	SetOpen(!bOpen);
+	DriveState.bLatched = !DriveState.bLatched;
+	SetOpen(DriveState.IsOn());
 }
 
 // Called every frame
