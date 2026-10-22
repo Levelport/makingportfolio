@@ -8,6 +8,9 @@
 #include "Switch.generated.h"
 
 class UBoxComponent;
+class UStaticMeshComponent;
+class UPrimitiveComponent;
+class UMaterialInstanceDynamic;
 
 /**
  * 
@@ -29,6 +32,21 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Switch")
 	TObjectPtr<UBoxComponent> InteractBounds;
 
+	UPROPERTY(VisibleAnywhere, Category="Switch")
+	TObjectPtr<UStaticMeshComponent> Plate;
+
+	UPROPERTY(VisibleAnywhere, Category="Switch")
+	TObjectPtr<UBoxComponent> PlateTrigger;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> PlateMaterial;
+
+	UPROPERTY(EditAnywhere, Category="Switch")
+	FLinearColor OffColor = FLinearColor(0.10f, 0.11f, 0.13f);
+
+	UPROPERTY(EditAnywhere, Category="Switch")
+	FLinearColor OnColor = FLinearColor(1.0f, 0.42f, 0.05f);
+
 	UPROPERTY(EditAnywhere, Category="Switch", meta=(MustImplement="/Script/FPSatCPP.SwitchInterface"))
 	TArray<TObjectPtr<AActor>> Targets;
 
@@ -47,9 +65,16 @@ protected:
 
 	void SendCommand(bool bPressed);
 
-	int32 OverlappingPawns = 0;
+	bool CountsAsWeight(AActor* OtherActor, UPrimitiveComponent* OtherComp) const;
+	int32 NumWeights() const;
+	void PlacePlate();
+	void UpdatePlate();
+
+	TSet<TWeakObjectPtr<AActor>> Weights;
 
 public:
+	virtual void OnConstruction(const FTransform& Transform) override;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
