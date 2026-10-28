@@ -11,6 +11,7 @@ class UPrimitiveComponent;
 class UInputAction;
 class UInputMappingContext;
 class APlayerController;
+class UTesterWidget;
 struct FInputActionValue;
 
 /** First person character with movement and look only. */
@@ -49,15 +50,34 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Grab", meta=(ClampMin="100.0"))
 	float ReleaseDistance = 450.f;
 
+	UPROPERTY(EditAnywhere,Category="Input")
+	TObjectPtr<UInputAction> InteractAction;
+
+	UPROPERTY(EditAnywhere, Category = "Interact", meta = (ClampMin = "50.0"))
+	float InteractTraceDistance = 400.f;
+
+
 	void EnsureGrabInput(APlayerController* PlayerController);
 	void ToggleGrab();
 	void GrabStart();
 	void GrabEnd();
 	void UpdateHeldObject();
 	bool IsHoldPathClear(const FVector& From, const FVector& To) const;
+	void InteractStart();
+	void InteractEnd();
+	AActor* FindInteractTarget() const;
+	void UpdateInteractPrompt();
 
 	UPROPERTY()
 	TObjectPtr<UPrimitiveComponent> HeldBody;
 
+	UPROPERTY()
+	TObjectPtr<AActor> FocusedInteract;
+
+	UPROPERTY()
+	TObjectPtr<UTesterWidget> InteractWidget;
+
 	FQuat HeldRelativeRotation = FQuat::Identity;
+
+	bool bPromptVisible = false;
 };

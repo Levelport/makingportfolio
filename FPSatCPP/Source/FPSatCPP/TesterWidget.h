@@ -13,5 +13,9 @@ UCLASS(abstract)
 class FPSATCPP_API UTesterWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+	UFUNCTION(BlueprintImplementableEvent , Category="Interact")
+	void SetInteractPromptVisible(bool bVisible);
 	
 };

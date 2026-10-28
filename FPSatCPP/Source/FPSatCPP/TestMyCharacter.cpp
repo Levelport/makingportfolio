@@ -16,6 +16,10 @@
 #include "Components/PrimitiveComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "InteractRushEInterface.h"
+#include "Camera/CameraComponent.h"
+#include "TesterWidget.h"
+#include "TestGameModeBase.h"
 
 namespace
 {
@@ -99,7 +103,7 @@ namespace
 ATestMyCharacter::ATestMyCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bStartWithTickEnabled = false;
+	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
@@ -147,6 +151,16 @@ void ATestMyCharacter::EnsureGrabInput(APlayerController* PlayerController)
 		}
 	}
 
+
+	if(!InteractAction)
+	{
+		InteractAction = NewObject<UInputAction>(this);
+		InteractAction->ValueType = EInputActionValueType::Boolean;
+
+		FEnhancedActionKeyMapping& Mapping = GrabMappingContext->MapKey(InteractAction, EKeys::E);
+		Mapping.Triggers.Add(NewObject<UInputTriggerDown>(GrabMappingContext));
+	}
+
 	if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer))
@@ -154,6 +168,7 @@ void ATestMyCharacter::EnsureGrabInput(APlayerController* PlayerController)
 			Subsystem->AddMappingContext(GrabMappingContext, 1);
 		}
 	}
+
 }
 
 void ATestMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -168,6 +183,11 @@ void ATestMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		{
 			EnhancedInputComponent->BindAction(GrabAction, ETriggerEvent::Started, this, &ATestMyCharacter::ToggleGrab);
 		}
+		if (InteractAction)
+		{
+			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATestMyCharacter::InteractStart);
+			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ATestMyCharacter::InteractEnd);
+		}
 	}
 }
 
@@ -175,7 +195,102 @@ void ATestMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void ATestMyCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	UpdateHeldObject();
+
+	if (HeldBody)
+	{
+		UpdateHeldObject();
+	}
+
+	UpdateInteractPrompt();
+}
+
+AActor* ATestMyCharacter::FindInteractTarget() const
+{
+	UCameraComponent* Camera = GetFirstPersonCameraComponent();
+	UWorld* world = GetWorld();
+
+	if (!Camera || !world)
+	{
+		return nullptr;
+	}
+
+	const FVector Start = Camera->GetComponentLocation();
+	const FVector End = Start + Camera->GetForwardVector() * InteractTraceDistance;
+
+	FHitResult Hit;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(InteractTrace), false, this);
+
+	if (!world->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	{
+		return nullptr;
+	}
+
+	AActor* HitActor = Hit.GetActor();
+
+	if (!IsValid(HitActor) || !HitActor->GetClass()->ImplementsInterface(UInteractRushEInterface::StaticClass()))
+	{
+		return nullptr;
+	}
+
+	return HitActor;
+}
+
+void ATestMyCharacter::InteractStart()
+{
+
+	AActor* HitActor = FindInteractTarget();
+	if (!HitActor)
+	{
+		return;
+	}
+	FocusedInteract = HitActor;
+	IInteractRushEInterface::Execute_OnInteractRushE(HitActor, this, true);
+
+}
+
+void ATestMyCharacter::UpdateInteractPrompt()
+{
+	if (!InteractWidget)
+	{
+		if(const ATestGameModeBase* GameMode=GetWorld()?
+		GetWorld()->GetAuthGameMode<ATestGameModeBase>():nullptr)
+		{
+			InteractWidget = GameMode->GetTesterWidget();
+		}
+	}
+
+	if (!InteractWidget)
+	{
+		return;
+	}
+
+	const bool bShow = FindInteractTarget() != nullptr;
+
+	if (bShow == bPromptVisible)
+	{
+		return;
+	}
+
+	bPromptVisible = bShow;
+	InteractWidget->SetInteractPromptVisible(bShow);
+
+}
+
+void ATestMyCharacter::InteractEnd()
+{
+	if (!IsValid(FocusedInteract))
+	{
+		FocusedInteract = nullptr;
+		return;
+	}
+
+	if (FocusedInteract->GetClass()->ImplementsInterface(UInteractRushEInterface::StaticClass()))
+	{
+		IInteractRushEInterface::Execute_OnInteractRushE(FocusedInteract, this, false);
+	}
+
+	FocusedInteract = nullptr;
+
 }
 
 void ATestMyCharacter::ToggleGrab()
@@ -249,7 +364,6 @@ void ATestMyCharacter::GrabEnd()
 	}
 
 	HeldBody = nullptr;
-	SetActorTickEnabled(false);
 }
 
 bool ATestMyCharacter::IsHoldPathClear(const FVector& From, const FVector& To) const

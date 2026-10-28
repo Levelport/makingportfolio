@@ -20,6 +20,11 @@ class FPSATCPP_API ATestGameModeBase : public AGameModeBase
 public:
 	ATestGameModeBase();
 
+	UTesterWidget* GetTesterWidget() const 
+	{ 
+		return TesterWidget;
+	}
+
 protected:
 
 	UPROPERTY(EditAnywhere, Category="Test")
