@@ -2,6 +2,7 @@
 
 
 #include "switchJunction.h"
+#include "junctionSignInterface.h"
 
 // Sets default values
 AswitchJunction::AswitchJunction()
@@ -15,8 +16,22 @@ AswitchJunction::AswitchJunction()
 void AswitchJunction::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	RefreshOutput();
 }
+
+void AswitchJunction::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	BroadcastCount(CurrentOnCount());
+}
+
+#if WITH_EDITOR
+void AswitchJunction::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	BroadcastCount(CurrentOnCount());
+}
+#endif
 
 // Called every frame
 void AswitchJunction::Tick(float DeltaTime)
@@ -72,6 +87,8 @@ void AswitchJunction::RefreshOutput()
 		}
 	}
 
+	BroadcastCount(OnCount);
+
 	const bool bShouldBeOn = OnCount >= FMath::Max(1, RequiredCount);
 	if (bShouldBeOn == bOutputOn)
 	{
@@ -85,6 +102,30 @@ void AswitchJunction::RefreshOutput()
 		if (IsValid(Target) && Target->GetClass()->ImplementsInterface(USwitchInterface::StaticClass()))
 		{
 			ISwitchInterface::Execute_OnSwitchCommand(Target, this, EFloorSwitchMode::WhilePressed, bOutputOn);
+		}
+	}
+}
+
+int32 AswitchJunction::CurrentOnCount() const
+{
+	int32 OnCount = 0;
+	for (const TPair<TWeakObjectPtr<AActor>, bool>& Pair : SourceOn)
+	{
+		if (Pair.Key.IsValid() && Pair.Value)
+		{
+			++OnCount;
+		}
+	}
+	return OnCount;
+}
+
+void AswitchJunction::BroadcastCount(int32 OnCount)
+{
+	for (AActor* Sign : Signs)
+	{
+		if (IsValid(Sign) && Sign->GetClass()->ImplementsInterface(UjunctionSignInterface::StaticClass()))
+		{
+			IjunctionSignInterface::Execute_OnJunctionCount(Sign, OnCount, RequiredCount);
 		}
 	}
 }

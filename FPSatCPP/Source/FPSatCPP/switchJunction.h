@@ -29,12 +29,23 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Switch", meta=(MustImplement="/Script/FPSatCPP.SwitchInterface"))
 	TArray<TObjectPtr<AActor>> Targets;
 
+	UPROPERTY(EditAnywhere, Category="Switch", meta=(DisplayName="Sign", MustImplement="/Script/FPSatCPP.junctionSignInterface"))
+	TArray<TObjectPtr<AActor>> Signs;
+
 	void RefreshOutput();
+	void BroadcastCount(int32 OnCount);
+	int32 CurrentOnCount() const;
 
 	TMap<TWeakObjectPtr<AActor>, bool> SourceOn;
 	bool bOutputOn = false;
 
-public:	
+public:
+	virtual void OnConstruction(const FTransform& Transform) override;
+
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
