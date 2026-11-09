@@ -341,8 +341,21 @@ void ATestMyCharacter::GrabStart()
 
 	const FQuat ViewQuat = ViewRotation.Quaternion();
 	HeldRelativeRotation = ViewQuat.Inverse() * Body->GetComponentQuat();
-	Body->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 	HeldBody = Body;
+	bDropThroughHeld = IsStandingOnComponent(Body) || IsBodyUnderCapsule(Body);
+	if (bDropThroughHeld)
+	{
+		if (UCharacterMovementComponent* Move = GetCharacterMovement())
+		{
+			Move->SetBase(nullptr);
+			Move->SetMovementMode(MOVE_Falling);
+		}
+		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+		{
+			Capsule->IgnoreActorWhenMoving(Body->GetOwner(), true);
+		}
+	}
+	SetHeldBlocksPawn(!bDropThroughHeld);
 	PhysicsHandle->GrabComponentAtLocationWithRotation(Body, NAME_None, Body->GetComponentLocation(), Body->GetComponentRotation());
 
 	if (PhysicsHandle->GetGrabbedComponent())
@@ -352,18 +365,55 @@ void ATestMyCharacter::GrabStart()
 	}
 	else
 	{
+		SetHeldBlocksPawn(true);
+		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+		{
+			Capsule->IgnoreActorWhenMoving(Body->GetOwner(), false);
+		}
+		bDropThroughHeld = false;
 		HeldBody = nullptr;
 	}
 }
 
 void ATestMyCharacter::GrabEnd()
 {
+	if (IsValid(HeldBody))
+	{
+		SetHeldBlocksPawn(true);
+		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+		{
+			Capsule->IgnoreActorWhenMoving(HeldBody->GetOwner(), false);
+		}
+	}
+
+	bDropThroughHeld = false;
+
+	UPrimitiveComponent* ReleasedBody = HeldBody;
+	FVector ThrowVelocity = FVector::ZeroVector;
+	if (IsValid(ReleasedBody))
+	{
+		ThrowVelocity = ReleasedBody->GetPhysicsLinearVelocity();
+		if (ThrowMaxSpeed <= 0.f)
+		{
+			ThrowVelocity = FVector::ZeroVector;
+		}
+		else if (ThrowVelocity.SizeSquared() > FMath::Square(ThrowMaxSpeed))
+		{
+			ThrowVelocity = ThrowVelocity.GetSafeNormal() * ThrowMaxSpeed;
+		}
+	}
+
 	if (PhysicsHandle)
 	{
 		PhysicsHandle->ReleaseComponent();
 	}
 
 	HeldBody = nullptr;
+
+	if (IsValid(ReleasedBody))
+	{
+		ReleasedBody->SetPhysicsLinearVelocity(ThrowVelocity);
+	}
 }
 
 bool ATestMyCharacter::IsHoldPathClear(const FVector& From, const FVector& To) const
@@ -390,6 +440,16 @@ void ATestMyCharacter::UpdateHeldObject()
 	{
 		GrabEnd();
 		return;
+	}
+
+	if (bDropThroughHeld && !IsOverlappingHeld() && !IsBodyUnderCapsule(HeldBody))
+	{
+		SetHeldBlocksPawn(true);
+		if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+		{
+			Capsule->IgnoreActorWhenMoving(HeldBody->GetOwner(), false);
+		}
+		bDropThroughHeld = false;
 	}
 
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
@@ -440,4 +500,100 @@ void ATestMyCharacter::UpdateHeldObject()
 
 	const FQuat TargetRotation = ViewRotation.Quaternion() * HeldRelativeRotation;
 	PhysicsHandle->SetTargetLocationAndRotation(Desired, TargetRotation.Rotator());
+}
+
+bool ATestMyCharacter::IsStandingOnComponent(const UPrimitiveComponent* Body) const
+{
+	if (!Body)
+	{
+		return false;
+	}
+
+	if (const UCharacterMovementComponent* Move = GetCharacterMovement())
+	{
+		if (Move->GetMovementBase() == Body)
+		{
+			return true;
+		}
+
+		if (Move->CurrentFloor.bBlockingHit && Move->CurrentFloor.HitResult.GetComponent() == Body)
+		{
+			return true;
+		}
+	}
+
+	const UCapsuleComponent* Capsule = GetCapsuleComponent();
+	UWorld* World = GetWorld();
+	if (!Capsule || !World)
+	{
+		return false;
+	}
+
+	FHitResult FloorHit;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(StandOnHeld), false, this);
+	const FVector Start = Capsule->GetComponentLocation();
+	const FVector End = Start - FVector(0.f, 0.f, Capsule->GetScaledCapsuleHalfHeight() + 30.f);
+	return World->LineTraceSingleByChannel(FloorHit, Start, End, ECC_Visibility, Params) && FloorHit.GetComponent() == Body;
+}
+
+bool ATestMyCharacter::IsBodyUnderCapsule(const UPrimitiveComponent* Body) const
+{
+	const UCapsuleComponent* Capsule = GetCapsuleComponent();
+	if (!Capsule || !Body)
+	{
+		return false;
+	}
+
+	FVector Closest = Body->GetComponentLocation();
+	if (Body->GetClosestPointOnCollision(Capsule->GetComponentLocation(), Closest) < 0.f)
+	{
+		return false;
+	}
+
+	const FVector Delta = Capsule->GetComponentLocation() - Closest;
+	if (Delta.Z <= 4.f)
+	{
+		return false;
+	}
+
+	const float Horizontal = FVector(Delta.X, Delta.Y, 0.f).Size();
+	return Horizontal <= Capsule->GetScaledCapsuleRadius() + 12.f;
+}
+
+bool ATestMyCharacter::IsOverlappingHeld() const
+{
+	const UCapsuleComponent* Capsule = GetCapsuleComponent();
+	if (!Capsule || !HeldBody)
+	{
+		return false;
+	}
+
+	FVector Closest = HeldBody->GetComponentLocation();
+	const float DistSq = HeldBody->GetClosestPointOnCollision(Capsule->GetComponentLocation(), Closest);
+	if (DistSq < 0.f)
+	{
+		return true;
+	}
+
+	const FVector Delta = Capsule->GetComponentLocation() - Closest;
+	const float Radius = Capsule->GetScaledCapsuleRadius() + 6.f;
+	const float HalfHeight = Capsule->GetScaledCapsuleHalfHeight() + 6.f;
+	const float CylinderHalf = FMath::Max(0.f, HalfHeight - Radius);
+	const float Horizontal = FVector(Delta.X, Delta.Y, 0.f).Size();
+	const float Vertical = FMath::Abs(Delta.Z);
+	if (Vertical <= CylinderHalf)
+	{
+		return Horizontal <= Radius;
+	}
+
+	const float CapZ = Vertical - CylinderHalf;
+	return Horizontal * Horizontal + CapZ * CapZ <= Radius * Radius;
+}
+
+void ATestMyCharacter::SetHeldBlocksPawn(bool bBlock)
+{
+	if (IsValid(HeldBody))
+	{
+		HeldBody->SetCollisionResponseToChannel(ECC_Pawn, bBlock ? ECR_Block : ECR_Ignore);
+	}
 }

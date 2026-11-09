@@ -53,7 +53,8 @@ void AGimmikCube::BeginPlay()
 	Mesh->WakeAllRigidBodies();
 }
 
-void AGimmikCube::OnMeshHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AGimmikCube::OnMeshHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (!Mesh || bKicking || KickCooldown > 0.f || KickDistance <= 0.f || !Cast<APawn>(OtherActor))
 	{

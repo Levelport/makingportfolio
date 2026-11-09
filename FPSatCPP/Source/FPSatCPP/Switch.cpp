@@ -135,10 +135,10 @@ void ASwitch::OnBoundsBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 
 	const bool bWasEmpty = NumWeights() == 0;
 	Weights.Add(OtherActor);
-	UpdatePlate();
 
 	if (!bWasEmpty)
 	{
+		UpdatePlate();
 		return;
 	}
 
@@ -170,6 +170,17 @@ void ASwitch::OnBoundsEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 
 void ASwitch::SendCommand(bool bPressed)
 {
+	if (bPressed && PressMode == EFloorSwitchMode::StayOn)
+	{
+		bColorFixed = true;
+		bFixedOn = true;
+	}
+	else if (bPressed && PressMode == EFloorSwitchMode::TurnOff)
+	{
+		bColorFixed = true;
+		bFixedOn = false;
+	}
+
 	for (AActor* Target : Targets)
 	{
 		if (IsValid(Target) && Target->GetClass()->ImplementsInterface(USwitchInterface::StaticClass()))
@@ -179,7 +190,7 @@ void ASwitch::SendCommand(bool bPressed)
 	}
 
 	OnSwitched(bPressed && PressMode != EFloorSwitchMode::TurnOff);
-
+	UpdatePlate();
 }
 
 bool ASwitch::CountsAsWeight(AActor* OtherActor, UPrimitiveComponent* OtherComp) const
@@ -274,7 +285,8 @@ void ASwitch::UpdatePlate()
 		return;
 	}
 
-	const FLinearColor Color = NumWeights() > 0 ? OnColor : OffColor;
+	const bool bLit = bColorFixed ? bFixedOn : NumWeights() > 0;
+	const FLinearColor Color = bLit ? OnColor : OffColor;
 	PlateMaterial->SetVectorParameterValue(TEXT("Color"), Color);
 	PlateMaterial->SetVectorParameterValue(TEXT("BaseColor"), Color);
 }

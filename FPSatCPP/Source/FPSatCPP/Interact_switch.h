@@ -46,10 +46,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Interact")
 	EFloorSwitchMode PressMode = EFloorSwitchMode::Toggle;
 
-	UPROPERTY(EditAnywhere, Category = "Interact", meta=(DisplayName="一定時間オン"))
+	UPROPERTY(EditAnywhere, Category = "Interact", meta=(DisplayName="[On] on Timer"))
 	bool bTimedOn = true;
 
-	UPROPERTY(EditAnywhere, Category = "Interact", meta=(DisplayName="オン秒数", ClampMin="0.1", EditCondition="bTimedOn"))
+	UPROPERTY(EditAnywhere, Category = "Interact", meta=(DisplayName="Time is On", ClampMin="0.1", EditCondition="bTimedOn"))
 	float OnSeconds = 5.f;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interact")

@@ -50,6 +50,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Grab", meta=(ClampMin="100.0"))
 	float ReleaseDistance = 450.f;
 
+	UPROPERTY(EditAnywhere, Category="Grab", meta=(DisplayName="maxThrowSpeed", ClampMin="0.0", ForceUnits="cm/s"))
+	float ThrowMaxSpeed = 1000.f;
+
 	UPROPERTY(EditAnywhere,Category="Input")
 	TObjectPtr<UInputAction> InteractAction;
 
@@ -63,6 +66,10 @@ protected:
 	void GrabEnd();
 	void UpdateHeldObject();
 	bool IsHoldPathClear(const FVector& From, const FVector& To) const;
+	bool IsStandingOnComponent(const UPrimitiveComponent* Body) const;
+	bool IsBodyUnderCapsule(const UPrimitiveComponent* Body) const;
+	bool IsOverlappingHeld() const;
+	void SetHeldBlocksPawn(bool bBlock);
 	void InteractStart();
 	void InteractEnd();
 	AActor* FindInteractTarget() const;
@@ -80,4 +87,5 @@ protected:
 	FQuat HeldRelativeRotation = FQuat::Identity;
 
 	bool bPromptVisible = false;
+	bool bDropThroughHeld = false;
 };

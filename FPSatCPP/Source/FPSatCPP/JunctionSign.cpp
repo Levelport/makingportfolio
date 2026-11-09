@@ -83,7 +83,8 @@ void AJunctionSign::UpdateSign()
 	{
 		if (!BoardMaterial)
 		{
-			if (UMaterialInterface* Base = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial")))
+			if (UMaterialInterface* Base = LoadObject<UMaterialInterface>
+				(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial")))
 			{
 				BoardMaterial = UMaterialInstanceDynamic::Create(Base, this);
 			}

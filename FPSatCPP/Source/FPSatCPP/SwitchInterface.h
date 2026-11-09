@@ -12,8 +12,8 @@ enum class EFloorSwitchMode : uint8
 {
 	WhilePressed UMETA(DisplayName="押している間"),
 	Toggle UMETA(DisplayName="押すたびに切り替え"),
-	StayOn UMETA(DisplayName="オンにする"),
-	TurnOff UMETA(DisplayName="オフにする")
+	StayOn UMETA(DisplayName="ずっとオン"),
+	TurnOff UMETA(DisplayName="ずっとオフ")
 };
 
 // This class does not need to be modified.

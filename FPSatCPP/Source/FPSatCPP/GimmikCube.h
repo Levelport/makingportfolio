@@ -25,10 +25,11 @@ protected:
 	TObjectPtr<UStaticMeshComponent> Mesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Gimmik", meta=(ClampMin="0.0", ForceUnits="cm"))
-	float KickDistance = 50.f;
+	float KickDistance = 100.f;
 
 	UFUNCTION()
-	void OnMeshHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void OnMeshHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, 
+		FVector NormalImpulse, const FHitResult& Hit);
 
 	bool bKicking = false;
 	float KickCooldown = 0.f;

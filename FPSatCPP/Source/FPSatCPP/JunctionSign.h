@@ -38,10 +38,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Sign")
 	TObjectPtr<UTextRenderComponent> CountText;
 
-	UPROPERTY(EditAnywhere, Category="Sign", meta=(DisplayName="文字色"))
+	UPROPERTY(EditAnywhere, Category="Sign", meta=(DisplayName="WordColor"))
 	FLinearColor TextColor = FLinearColor::White;
 
-	UPROPERTY(EditAnywhere, Category="Sign", meta=(DisplayName="文字サイズ", ClampMin="1.0"))
+	UPROPERTY(EditAnywhere, Category="Sign", meta=(DisplayName="WordSize", ClampMin="1.0"))
 	float TextWorldSize = 70.f;
 
 	void UpdateSign();
